@@ -4,3 +4,7 @@
 "*.txt"   
 "bias_log*.csv" 
 "CONVERSATION.md" 
+"*.log" 
+"*.txt" 
+"bias_log*.csv" 
+"CONVERSATION.md" 
