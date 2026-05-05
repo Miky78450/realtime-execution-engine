@@ -9,3 +9,7 @@
 "bias_log*.csv" 
 "CONVERSATION.md" 
 NQ_full_clean.csv 
+"*.log" 
+"*.txt" 
+"bias_log*.csv" 
+"CONVERSATION.md" 
