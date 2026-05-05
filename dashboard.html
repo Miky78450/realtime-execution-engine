@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICT Bot — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080c10;
+    --bg2:       #0d1117;
+    --bg3:       #131920;
+    --border:    #1e2d3d;
+    --accent:    #00d4ff;
+    --accent2:   #00ff88;
+    --accent3:   #ff4466;
+    --warn:      #ffaa00;
+    --text:      #c9d1d9;
+    --text-dim:  #4a5568;
+    --text-mid:  #7b8fa6;
+    --bull:      #00ff88;
+    --bear:      #ff4466;
+    --neutral:   #ffaa00;
+    --win:       #00ff88;
+    --loss:      #ff4466;
+    --open-tr:   #00d4ff;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-head: 'Syne', sans-serif;
+    --glow-a:    0 0 20px rgba(0,212,255,0.15);
+    --glow-g:    0 0 20px rgba(0,255,136,0.15);
+    --glow-r:    0 0 20px rgba(255,68,102,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    text-shadow: var(--glow-a);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--accent2);
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .status-pill.active   { color: var(--accent2); border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.06); }
+  .status-pill.inactive { color: var(--text-mid); border-color: var(--border); }
+  .status-pill.trading  { color: var(--accent);  border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.06); }
+  .status-pill.searching{ color: var(--warn);    border-color: rgba(255,170,0,0.3);  background: rgba(255,170,0,0.06); }
+
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status-pill.active .status-dot { animation: pulse 1.5s infinite; }
+
+  #last-update { color: var(--text-dim); font-size: 10px; }
+
+  /* ── MAIN GRID ── */
+  main {
+    display: grid;
+    grid-template-columns: 280px 1fr 340px;
+    grid-template-rows: 1fr;
+    gap: 1px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  section {
+    background: var(--bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── LEFT PANEL — MARKET STATE ── */
+  .market-panel { }
+
+  .metric-block {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .metric-label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .metric-value.bullish  { color: var(--bull); text-shadow: var(--glow-g); }
+  .metric-value.bearish  { color: var(--bear); text-shadow: var(--glow-r); }
+  .metric-value.neutral  { color: var(--warn); }
+  .metric-value.default  { color: var(--accent); text-shadow: var(--glow-a); }
+
+  .price-display {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    font-family: var(--font-head);
+  }
+
+  .rsi-bar-wrap {
+    margin-top: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .rsi-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s;
+    background: var(--accent);
+  }
+
+  .levels-list { padding: 12px 16px; flex: 1; overflow-y: auto; }
+
+  .level-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(30,45,61,0.5);
+  }
+
+  .level-row:last-child { border-bottom: none; }
+
+  .level-tag {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  .bsl-tag { color: var(--bear); background: rgba(255,68,102,0.1); border: 1px solid rgba(255,68,102,0.2); }
+  .ssl-tag { color: var(--bull); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); }
+
+  .level-price { color: var(--text); font-weight: 500; }
+  .level-dist  { color: var(--text-dim); font-size: 10px; }
+
+  /* ── CENTER PANEL — LOGS ── */
+  .log-panel { }
+
+  .log-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    scroll-behavior: smooth;
+  }
+
+  .log-area::-webkit-scrollbar { width: 4px; }
+  .log-area::-webkit-scrollbar-track { background: transparent; }
+  .log-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .log-line {
+    display: flex;
+    gap: 10px;
+    padding: 3px 16px;
+    border-left: 2px solid transparent;
+    transition: background 0.1s;
+  }
+
+  .log-line:hover { background: var(--bg2); }
+
+  .log-line.sweep   { border-left-color: var(--warn); background: rgba(255,170,0,0.03); }
+  .log-line.signal  { border-left-color: var(--accent); background: rgba(0,212,255,0.04); }
+  .log-line.entry   { border-left-color: var(--accent2); background: rgba(0,255,136,0.04); }
+  .log-line.win     { border-left-color: var(--win); background: rgba(0,255,136,0.06); }
+  .log-line.loss    { border-left-color: var(--loss); background: rgba(255,68,102,0.06); }
+  .log-line.missed  { border-left-color: var(--text-dim); }
+  .log-line.day     { border-left-color: var(--border); background: var(--bg2); }
+
+  .log-ts  { color: var(--text-dim); font-size: 10px; white-space: nowrap; flex-shrink: 0; }
+  .log-msg { color: var(--text); line-height: 1.5; word-break: break-all; }
+
+  .log-msg .hl-sweep  { color: var(--warn); font-weight: 700; }
+  .log-msg .hl-signal { color: var(--accent); font-weight: 700; }
+  .log-msg .hl-win    { color: var(--win); font-weight: 700; }
+  .log-msg .hl-loss   { color: var(--loss); font-weight: 700; }
+  .log-msg .hl-entry  { color: var(--accent2); font-weight: 700; }
+
+  /* ── RIGHT PANEL — TRADES ── */
+  .trade-panel { }
+
+  .pnl-banner {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .pnl-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .pnl-card-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+  .pnl-card-value { font-family: var(--font-head); font-size: 20px; font-weight: 800; }
+
+  .pnl-card-value.pos { color: var(--win); text-shadow: var(--glow-g); }
+  .pnl-card-value.neg { color: var(--loss); text-shadow: var(--glow-r); }
+  .pnl-card-value.neu { color: var(--text); }
+
+  .stats-row {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .stat-cell {
+    flex: 1;
+    padding: 10px 16px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .stat-cell:last-child { border-right: none; }
+  .stat-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+  .stat-val   { font-family: var(--font-head); font-size: 18px; font-weight: 800; margin-top: 2px; }
+  .stat-val.green { color: var(--win); }
+  .stat-val.red   { color: var(--loss); }
+  .stat-val.blue  { color: var(--accent); }
+
+  .trades-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+
+  .trade-row {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(30,45,61,0.5);
+    display: grid;
+    grid-template-columns: 60px 1fr 80px;
+    gap: 8px;
+    align-items: center;
+    transition: background 0.1s;
+  }
+
+  .trade-row:hover { background: var(--bg2); }
+  .trade-row.open  { border-left: 3px solid var(--accent); }
+  .trade-row.win   { border-left: 3px solid var(--win); }
+  .trade-row.loss  { border-left: 3px solid var(--loss); }
+
+  .trade-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 3px 6px;
+    border-radius: 3px;
+    text-align: center;
+  }
+
+  .badge-s1 { color: var(--bear); background: rgba(255,68,102,0.12); border: 1px solid rgba(255,68,102,0.2); }
+  .badge-s2 { color: var(--bull); background: rgba(0,255,136,0.12); border: 1px solid rgba(0,255,136,0.2); }
+  .badge-open { color: var(--accent); background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.2); }
+
+  .trade-details { font-size: 10px; color: var(--text-mid); }
+  .trade-entry   { font-size: 11px; font-weight: 500; color: var(--text); }
+
+  .trade-pnl {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .trade-pnl.pos { color: var(--win); }
+  .trade-pnl.neg { color: var(--loss); }
+  .trade-pnl.neu { color: var(--accent); }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .empty-icon { font-size: 32px; opacity: 0.3; }
+
+  /* ── SCROLLBARS ── */
+  .trades-list::-webkit-scrollbar { width: 4px; }
+  .trades-list::-webkit-scrollbar-track { background: transparent; }
+  .trades-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    ICT BOT
+  </div>
+  <div class="header-right">
+    <span id="status-pill" class="status-pill inactive">
+      <span class="status-dot"></span>
+      <span id="status-text">Connexion...</span>
+    </span>
+    <span id="last-update">—</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── LEFT : MARKET STATE ── -->
+  <section class="market-panel">
+    <div class="section-title">État du marché</div>
+
+    <div class="metric-block">
+      <div class="metric-label">Prix NQ</div>
+      <div class="price-display" id="price">—</div>
+    </div>
+
+    <div class="metric-block">
+      <div class="metric-label">Biais H1</div>
+      <div class="metric-value" id="bias">—</div>
+    </div>
+
+    <div class="metric-block">
+      <div class="metric-label">RSI(7) 15m</div>
+      <div class="metric-value default" id="rsi-val">—</div>
+      <div class="rsi-bar-wrap">
+        <div class="rsi-bar" id="rsi-bar" style="width:50%"></div>
+      </div>
+    </div>
+
+    <div class="metric-block" style="border-bottom:none; flex:1;">
+      <div class="metric-label" style="margin-bottom:10px;">Niveaux H1</div>
+      <div id="levels-list" class="levels-list" style="padding:0; overflow-y:auto;"></div>
+    </div>
+  </section>
+
+  <!-- ── CENTER : LOGS ── -->
+  <section class="log-panel">
+    <div class="section-title">Logs NinjaTrader</div>
+    <div class="log-area" id="log-area"></div>
+  </section>
+
+  <!-- ── RIGHT : TRADES ── -->
+  <section class="trade-panel">
+    <div class="section-title">Trades</div>
+
+    <div class="pnl-banner">
+      <div class="pnl-card">
+        <div class="pnl-card-label">PnL du jour</div>
+        <div class="pnl-card-value neu" id="pnl-day">$0</div>
+      </div>
+      <div class="pnl-card">
+        <div class="pnl-card-label">PnL total</div>
+        <div class="pnl-card-value neu" id="pnl-total">$0</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-label">Wins</div>
+        <div class="stat-val green" id="wins">0</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Losses</div>
+        <div class="stat-val red" id="losses">0</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">WR</div>
+        <div class="stat-val blue" id="wr">—</div>
+      </div>
+    </div>
+
+    <div class="trades-list" id="trades-list">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <span>Aucun trade</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const API = '/api';
+let prevLogCount = 0;
+let autoScroll   = true;
+
+function colorBias(b) {
+  const v = (b || '').toLowerCase();
+  if (v === 'bullish') return 'bullish';
+  if (v === 'bearish') return 'bearish';
+  if (v === 'neutral') return 'neutral';
+  return 'default';
+}
+
+function fmtPnl(v) {
+  const n = parseFloat(v) || 0;
+  return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(0);
+}
+
+function highlightMsg(msg) {
+  return msg
+    .replace(/(Sweep (?:BSL|SSL) @ [\d.]+)/g, '<span class="hl-sweep">$1</span>')
+    .replace(/(S[12] (?:Bear|Bull) signal[^|]*)/g, '<span class="hl-signal">$1</span>')
+    .replace(/(TP @ [\d.]+[^<]+)/g, '<span class="hl-win">$1</span>')
+    .replace(/(SL @ [\d.]+ \| PnL[^<]+)/g, '<span class="hl-loss">$1</span>')
+    .replace(/(Entree @ [\d.]+)/g, '<span class="hl-entry">$1</span>');
+}
+
+function logClass(msg) {
+  if (msg.includes('Sweep')) return 'sweep';
+  if (msg.includes('signal')) return 'signal';
+  if (msg.includes('Entree @')) return 'entry';
+  if (msg.includes('TP @')) return 'win';
+  if (msg.includes('SL @') && msg.includes('PnL')) return 'loss';
+  if (msg.includes('limite non rempli')) return 'missed';
+  if (msg.includes('Nouveau jour')) return 'day';
+  return '';
+}
+
+function renderLogs(logs) {
+  const area = document.getElementById('log-area');
+  if (logs.length === prevLogCount) return;
+  prevLogCount = logs.length;
+
+  area.innerHTML = logs.map(l => {
+    const cls = logClass(l.msg);
+    if (l.msg.includes('[ICT DEBUG]')) {
+      return ''; // cacher les debug lines dans les logs
+    }
+    return `<div class="log-line ${cls} fade-in">
+      <span class="log-ts">${l.ts.slice(11,19)}</span>
+      <span class="log-msg">${highlightMsg(l.msg)}</span>
+    </div>`;
+  }).join('');
+
+  if (autoScroll) area.scrollTop = area.scrollHeight;
+}
+
+function renderLevels(bsl, ssl, price) {
+  const el = document.getElementById('levels-list');
+  const p  = parseFloat(price) || 0;
+  const bslV = parseFloat(bsl) || 0;
+  const sslV = parseFloat(ssl) || 0;
+
+  let html = '';
+  if (bslV > 0) {
+    html += `<div class="level-row">
+      <span class="level-tag bsl-tag">BSL</span>
+      <span class="level-price">${bslV.toFixed(2)}</span>
+      <span class="level-dist">+${(bslV-p).toFixed(1)} pts</span>
+    </div>`;
+  }
+  if (sslV > 0) {
+    html += `<div class="level-row">
+      <span class="level-tag ssl-tag">SSL</span>
+      <span class="level-price">${sslV.toFixed(2)}</span>
+      <span class="level-dist">-${(p-sslV).toFixed(1)} pts</span>
+    </div>`;
+  }
+  if (!html) html = '<div style="color:var(--text-dim);font-size:10px;padding:8px 0;">Aucun niveau détecté</div>';
+  el.innerHTML = html;
+}
+
+function renderTrades(trades, wins, losses) {
+  const el = document.getElementById('trades-list');
+  if (!trades || trades.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><span>Aucun trade</span></div>`;
+    return;
+  }
+  const reversed = [...trades].reverse();
+  el.innerHTML = reversed.map(t => {
+    const badge = t.setup.includes('S1') || t.setup.includes('Bear')
+      ? '<span class="trade-badge badge-s1">S1 BEAR</span>'
+      : '<span class="trade-badge badge-s2">S2 BULL</span>';
+    const cls = t.result === 'win' ? 'win' : t.result === 'loss' ? 'loss' : 'open';
+    const pnlCls = t.pnl > 0 ? 'pos' : t.pnl < 0 ? 'neg' : 'neu';
+    const pnlStr = t.result === 'open'
+      ? '<span class="trade-pnl neu">OPEN</span>'
+      : `<span class="trade-pnl ${pnlCls}">${t.pnl > 0 ? '+' : ''}$${Math.abs(t.pnl||0).toFixed(0)}</span>`;
+    const time = (t.open_time || '').slice(11,19);
+    return `<div class="trade-row ${cls}">
+      ${badge}
+      <div>
+        <div class="trade-entry">${(t.entry||0).toFixed(2)}</div>
+        <div class="trade-details">${time} · SL ${(t.sl||0).toFixed(2)}</div>
+      </div>
+      ${pnlStr}
+    </div>`;
+  }).join('');
+}
+
+async function update() {
+  try {
+    const r = await fetch(API);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+
+    // Status pill
+    const pill = document.getElementById('status-pill');
+    const st   = document.getElementById('status-text');
+    if (d.in_trade) {
+      pill.className = 'status-pill trading';
+      st.textContent = 'En trade';
+    } else if (d.searching) {
+      pill.className = 'status-pill searching';
+      st.textContent = 'Recherche IFVG';
+    } else if (d.last_update !== '—') {
+      pill.className = 'status-pill active';
+      st.textContent = 'Actif';
+    } else {
+      pill.className = 'status-pill inactive';
+      st.textContent = 'En attente...';
+    }
+    document.getElementById('last-update').textContent = 'Mis à jour ' + (d.last_update||'').slice(11,19);
+
+    // Price
+    document.getElementById('price').textContent = d.close || '—';
+
+    // Bias
+    const biasEl = document.getElementById('bias');
+    biasEl.textContent = (d.bias || '—').toUpperCase();
+    biasEl.className   = 'metric-value ' + colorBias(d.bias);
+
+    // RSI
+    const rsi = parseFloat(d.rsi) || 50;
+    document.getElementById('rsi-val').textContent = d.rsi || '—';
+    const bar = document.getElementById('rsi-bar');
+    bar.style.width = rsi + '%';
+    bar.style.background = rsi > 70 ? 'var(--bear)' : rsi < 30 ? 'var(--bull)' : 'var(--accent)';
+
+    // Levels
+    renderLevels(d.bsl, d.ssl, d.close);
+
+    // Logs
+    renderLogs(d.logs || []);
+
+    // PnL
+    const pDay = parseFloat(d.pnl_day) || 0;
+    const pTot = parseFloat(d.pnl_total) || 0;
+    const dayEl = document.getElementById('pnl-day');
+    const totEl = document.getElementById('pnl-total');
+    dayEl.textContent = fmtPnl(pDay);
+    dayEl.className   = 'pnl-card-value ' + (pDay > 0 ? 'pos' : pDay < 0 ? 'neg' : 'neu');
+    totEl.textContent = fmtPnl(pTot);
+    totEl.className   = 'pnl-card-value ' + (pTot > 0 ? 'pos' : pTot < 0 ? 'neg' : 'neu');
+
+    // Stats
+    const w = parseInt(d.wins) || 0;
+    const l = parseInt(d.losses) || 0;
+    document.getElementById('wins').textContent   = w;
+    document.getElementById('losses').textContent = l;
+    document.getElementById('wr').textContent     = w+l > 0 ? Math.round(w/(w+l)*100)+'%' : '—';
+
+    // Trades
+    renderTrades(d.trades, w, l);
+
+  } catch(e) {
+    document.getElementById('status-pill').className = 'status-pill inactive';
+    document.getElementById('status-text').textContent = 'Déconnecté';
+  }
+}
+
+// Auto-scroll : désactivé si l'utilisateur scrolle manuellement
+document.addEventListener('DOMContentLoaded', () => {
+  const area = document.getElementById('log-area');
+  area.addEventListener('scroll', () => {
+    autoScroll = area.scrollTop + area.clientHeight >= area.scrollHeight - 20;
+  });
+});
+
+update();
+setInterval(update, 2000);
+</script>
+</body>
+</html>

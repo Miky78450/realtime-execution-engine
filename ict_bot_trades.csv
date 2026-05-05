@@ -1,0 +1,2 @@
+setup,direction,bias,session,entry,sl,tp,rr,qty,entry_time,entry_tf,exit,exit_time,result,exit_note,r_pnl,equity_r
+2,long,bullish,london,27837.25,27828.00,27863.00,2.50,25,2026-05-04 13:18:00,3m,27827.49,2026-05-04 13:23:21,loss,SL,-0.9760,-0.9760
