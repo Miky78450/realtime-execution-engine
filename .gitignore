@@ -1,2 +1,6 @@
 "NQ_full_clean.csv*.logbias_log*.csvict_bot_trades.csv__pycache__/*.pyc.env" 
 "NQ_full_clean.csv" 
+"*.log" 
+"*.txt"   
+"bias_log*.csv" 
+"CONVERSATION.md" 
