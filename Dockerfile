@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 5051
 
-CMD ["sh", "-c", "uvicorn stats_server:app --host 0.0.0.0 --port ${PORT:-5051}"]
+CMD uvicorn stats_server:app --host 0.0.0.0 --port $PORT
