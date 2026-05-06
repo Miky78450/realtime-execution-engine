@@ -1,7 +1,7 @@
-# Demo server — stdlib uniquement, aucune dépendance externe
-# (http.server, json, csv, threading sont tous dans la stdlib Python 3.8+)
-
-# Pour le backtester complet (nq_ict_backtester_BACKUP.py) :
-# numpy>=1.24
-# pandas>=2.0
-# pytz>=2023.3
+fastapi==0.115.12
+uvicorn==0.34.2
+pandas==2.2.3
+numpy==2.2.5
+sqlalchemy==2.0.40
+psycopg2-binary==2.9.10
+python-dotenv==1.1.0
