@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-ICT Stats Dashboard
+Stats Dashboard — FastAPI
 Usage : python stats_server.py
         python stats_server.py mon_fichier.csv
 """
 import sys, json, webbrowser, threading, time
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import numpy as np
 import pandas as pd
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
 
 CSV_FILE      = "nq_ict_backtest_results.csv" if len(sys.argv) < 2 else sys.argv[1]
 RISK_DOLLARS  = 500.0
@@ -20,6 +22,11 @@ APPLY_COSTS   = True
 PORT          = 5051
 
 MOIS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
+
+HTML_FILE = Path(__file__).parent / "stats_dashboard.html"
+
+app = FastAPI(title="Stats Dashboard")
+
 
 def compute_stats():
     df = pd.read_csv(CSV_FILE)
@@ -63,7 +70,6 @@ def compute_stats():
     ml, al = max_streak(df["result"].tolist(), "loss")
     mw, aw = max_streak(df["result"].tolist(), "win")
 
-    # Equity curve
     equity_curve = []
     for i, row in df.iterrows():
         equity_curve.append({
@@ -71,7 +77,6 @@ def compute_stats():
             "y": round(float(row["cumul"]) * RISK_DOLLARS, 0)
         })
 
-    # Par setup
     setups = []
     for sid in sorted(df["setup"].unique()):
         s   = df[df["setup"]==sid]
@@ -97,7 +102,6 @@ def compute_stats():
             "ny":      f"{int((ny['result']=='win').sum())}/{len(ny)}",
         })
 
-    # Par mois
     months = []
     for period in sorted(df["month"].unique()):
         sub   = df[df["month"]==period]
@@ -112,7 +116,6 @@ def compute_stats():
             "dol":    round(m_dol, 0),
         })
 
-    # Trades récents
     recent = []
     for _, row in df.tail(20).iloc[::-1].iterrows():
         recent.append({
@@ -142,45 +145,32 @@ def compute_stats():
         "csv":      CSV_FILE,
     }
 
-HTML_FILE = Path(__file__).parent / "stats_dashboard.html"
 
-class Handler(BaseHTTPRequestHandler):
-    def log_message(self, *a): pass
-    def do_GET(self):
-        if self.path == "/":
-            html = HTML_FILE.read_text(encoding="utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(html.encode())
-        elif self.path == "/api":
-            try:
-                data = compute_stats()
-                body = json.dumps(data).encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(str(e).encode())
-        else:
-            self.send_response(404)
-            self.end_headers()
+@app.get("/", response_class=HTMLResponse)
+def dashboard():
+    if not HTML_FILE.exists():
+        raise HTTPException(status_code=404, detail="stats_dashboard.html introuvable")
+    return HTML_FILE.read_text(encoding="utf-8")
+
+
+@app.get("/api")
+def api_stats():
+    try:
+        return JSONResponse(content=compute_stats())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 def open_browser():
     time.sleep(1.5)
     webbrowser.open(f"http://localhost:{PORT}")
 
+
 if __name__ == "__main__":
     print(f"\n{'═'*50}")
-    print(f"  ICT STATS DASHBOARD")
+    print(f"  STATS DASHBOARD — FastAPI")
     print(f"  Fichier : {CSV_FILE}")
     print(f"  URL     : http://localhost:{PORT}")
     print(f"{'═'*50}\n")
     threading.Thread(target=open_browser, daemon=True).start()
-    try:
-        HTTPServer(("", PORT), Handler).serve_forever()
-    except KeyboardInterrupt:
-        print("\n👋 Arrêt")
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
