@@ -23,7 +23,7 @@ COMMISSION_RT  = 1.08
 SLIPPAGE_PTS   = 0.0
 POINT_VALUE    = 2.0
 APPLY_COSTS    = True
-PORT           = 5051
+PORT           = int(os.getenv("PORT", 5051))
 MOIS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"]
 
 HTML_FILE = Path(__file__).parent / "stats_dashboard.html"
@@ -214,4 +214,4 @@ if __name__ == "__main__":
     print(f"  URL : http://localhost:{PORT}")
     print(f"{'═'*50}\n")
     threading.Thread(target=open_browser, daemon=True).start()
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run("stats_server:app", host="0.0.0.0", port=PORT)
