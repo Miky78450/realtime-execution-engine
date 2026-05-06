@@ -49,7 +49,7 @@ def compute_stats():
     df = load_df()
 
     df["date"]  = df["entry_time"].dt.date
-    df["month"] = df["entry_time"].dt.tz_localize(None).dt.to_period("M")
+    df["month"] = df["entry_time"].dt.tz_convert(None).dt.to_period("M")
 
     if APPLY_COSTS:
         risk_pts = (df["sl"] - df["entry"]).abs().clip(lower=1.0)
