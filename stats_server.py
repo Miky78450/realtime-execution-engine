@@ -174,6 +174,8 @@ def api_stats():
     try:
         return JSONResponse(content=compute_stats())
     except Exception as e:
+        import traceback
+        print(traceback.format_exc(), flush=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/trades")
