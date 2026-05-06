@@ -1,0 +1,28 @@
+name: Tests Backtester
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupère le code
+        uses: actions/checkout@v4
+
+      - name: Installe Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installe les dépendances
+        run: |
+          pip install pytest pandas numpy pytz
+
+      - name: Lance les tests
+        run: |
+          pytest test_backtester.py -v
